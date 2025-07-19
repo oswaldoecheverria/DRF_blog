@@ -1,0 +1,52 @@
+services:
+# Django app 
+  backend:  
+    container_name: django
+    build: .
+    command: uvicorn core.asgi:application --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+      - ./.env:/app/.env  # Monta el archivo .env específicamente
+    ports:
+      - 8000:8000
+    depends_on:
+      - django_db
+      - django_redis
+    environment:
+      - DJANGO_SETTINGS_MODULE=core.settings
+    restart: unless-stopped
+
+
+# DATABASE POSTGRES
+  django_db:
+    image: postgres
+    container_name: postgresql
+    restart: always
+    environment:
+      POSTGRES_DB: django_db
+      POSTGRES_USER: django
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      #- .dbdata:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql/data  # Volumen persistente
+
+
+  # REDIS
+  django_redis:
+    image: redis
+    container_name: django_redis
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+
+volumes:
+  postgres_data:  # Volumen para PostgreSQL
+  redis_data:     # Volumen para Redis
+  
+  
+
