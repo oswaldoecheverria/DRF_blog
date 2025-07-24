@@ -1,22 +1,27 @@
-FROM python:3.9
+FROM python:3.9-slim
 
-# Instalamos el cliente SSH 
-RUN apt-get update && apt-get install -y openssh-client
+# Instalar dependencias del sistema (si son necesarias)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set environment variables 
-ENV PYTHONUNBUFFERED 1
+# Variables de entorno
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
-# Set the working directory 
+# Directorio de trabajo
 WORKDIR /app
 
-# Copy requirements.txt file
-COPY requirements.txt /app/requirements.txt
+# Copiar e instalar dependencias primero (para cachear la capa)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install python dependencies
-RUN pip install -r requirements.txt
+# Copiar el resto de la aplicación
+COPY . .
 
-# Copy the application to the working directory
-COPY . /app
+# Puerto expuesto (solo documentación)
+EXPOSE 8000
 
-# Start the SSH tunnel
-CMD python manage.py runserver 0.0.0.0:8000
+# Comando para ejecutar (debe coincidir con docker-compose.yml)
+CMD ["uvicorn", "core.asgi:application", "--host", "0.0.0.0", "--port", "8000", "--reload"]
