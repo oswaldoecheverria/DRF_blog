@@ -70,11 +70,15 @@ class Category(models.Model):
 
     description = models.TextField(
         verbose_name="Descripción",
+        blank=True,
+        null=True,
         help_text="Explicación detallada del propósito de esta categoría",
     )
 
     thumbnail = models.ImageField(
         upload_to=category_thumbnail_directory,
+        blank=True,
+        null=True,
         verbose_name="Imagen destacada",
         help_text="Imagen principal del post (se almacena en category_thumbnail_directory)",
     )
